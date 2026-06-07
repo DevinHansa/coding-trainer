@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}No Exercises — Coding Trainer{% endblock %}
+{% block content %}
+<div class="empty-state-page">
+    <span class="empty-icon">📭</span>
+    <h1>No {{ category or '' }} exercises available</h1>
+    <p>The exercise library is empty. Let's seed it or generate some exercises.</p>
+    <div class="hero-actions">
+        <a href="/exercises" class="btn btn-primary">Browse All Exercises</a>
+        <a href="/" class="btn btn-outline">Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}{{ exercise.title }} — SDE Prep{% endblock %}
+
+{% block content %}
+<div class="exercise-page" data-exercise-id="{{ exercise.id }}" data-category="{{ exercise.category }}">
+    <!-- Exercise Header -->
+    <div class="exercise-header">
+        <div class="exercise-meta">
+            <span class="badge badge-{{ exercise.category }}">{{ exercise.category | upper }}</span>
+            <span class="badge badge-difficulty-{{ exercise.difficulty }}">
+                Level {{ exercise.difficulty }}
+                {% if exercise.difficulty == 1 %}· Foundations
+                {% elif exercise.difficulty == 2 %}· Intermediate
+                {% elif exercise.difficulty == 3 %}· Advanced
+                {% else %}· Senior{% endif %}
+            </span>
+            <div class="tag-list">
+                {% for tag in exercise.tags %}
+                <span class="tag">{{ tag }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="exercise-header-right">
+            <div class="rank-badge-mini">
+                <span>{{ rank_info.icon }}</span>
+                <span class="rank-xp">{{ rank_info.total_xp }} XP</span>
+            </div>
+            <div class="exercise-timer" id="exerciseTimer">
+                <span class="timer-icon">⏱️</span>
+                <span class="timer-display" id="timerDisplay">00:00</span>
+            </div>
+        </div>
+    </div>
+
+    <h1 class="exercise-title">{{ exercise.title }}</h1>
+
+    <!-- Split Screen Layout -->
+    <div class="split-pane">
+        <!-- LEFT: Problem + Test Results -->
+        <div class="split-left">
+            <div class="exercise-card">
+                <h2 class="card-title">📋 Problem</h2>
+                <div class="problem-description">{{ exercise.description | replace('\n', '<br>') | safe }}</div>
+                {% if exercise.sample_data %}
+                <div class="sample-data">
+                    <h3>Sample Data</h3>
+                    <pre><code>{{ exercise.sample_data }}</code></pre>
+                </div>
+                {% endif %}
+                {% if exercise.expected_output %}
+                <div class="expected-output">
+                    <h3>Expected Output</h3>
+                    <pre><code>{{ exercise.expected_output }}</code></pre>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Test Results Panel -->
+            <div class="exercise-card test-results-card" id="testResultsCard" style="display:none;">
+                <h2 class="card-title">🧪 Test Results</h2>
+                <div id="testResultsList" class="test-results-list"></div>
+            </div>
+
+            <!-- Feedback Panel -->
+            <div class="feedback-panel" id="feedbackPanel" style="display:none;">
+                <div class="feedback-header" id="feedbackHeader">
+                    <div class="feedback-score" id="feedbackScore">0%</div>
+                    <div class="feedback-status" id="feedbackStatus"></div>
+                </div>
+                <div class="feedback-body">
+                    <div class="feedback-section" id="whatWorked" style="display:none;">
+                        <h3>✅ What Worked</h3>
+                        <p id="whatWorkedText"></p>
+                    </div>
+                    <div class="feedback-section" id="efficiencyNotes" style="display:none;">
+                        <h3>⚡ Efficiency Analysis</h3>
+                        <p id="efficiencyText"></p>
+                    </div>
+                    <div class="feedback-section" id="issuesSection" style="display:none;">
+                        <h3>🔧 Issues</h3>
+                        <div id="issuesList"></div>
+                    </div>
+                    <div class="feedback-section" id="overallFeedback">
+                        <h3>💬 Coach Feedback</h3>
+                        <p id="overallFeedbackText"></p>
+                    </div>
+                    <div class="feedback-section" id="solutionSection" style="display:none;">
+                        <h3>📖 Reference Solution</h3>
+                        <pre><code id="solutionCode"></code></pre>
+                    </div>
+                </div>
+                <div class="feedback-actions">
+                    <a href="/train/{{ exercise.category }}" class="btn btn-primary">Next Exercise →</a>
+                    <button class="btn btn-outline" id="retryBtn">Try Again</button>
+                    <button class="btn btn-ghost" id="showSolutionBtn">Show Solution</button>
+                </div>
+            </div>
+
+            <!-- MCQ Drill Modal -->
+            <div class="mcq-drill-panel" id="mcqPanel" style="display:none;">
+                <div class="exercise-card mcq-card">
+                    <h2 class="card-title">🧠 Concept Drill</h2>
+                    <p class="mcq-context" id="mcqContext">You're struggling with a concept. Let's reinforce it.</p>
+                    <div class="mcq-question" id="mcqQuestion"></div>
+                    <div class="mcq-options" id="mcqOptions"></div>
+                    <div class="mcq-explanation" id="mcqExplanation" style="display:none;"></div>
+                    <button class="btn btn-primary" id="mcqContinueBtn" style="display:none;">Continue →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Code Editor + Console -->
+        <div class="split-right">
+            <div class="exercise-card editor-card">
+                <div class="editor-header">
+                    <h2 class="card-title">💻 Code Editor</h2>
+                    <div class="editor-actions">
+                        <button class="btn btn-sm btn-ghost" id="clearBtn" title="Clear code">🗑️ Clear</button>
+                        <button class="btn btn-sm btn-ghost" id="resetBtn" title="Reset">↺ Reset</button>
+                    </div>
+                </div>
+                <div id="codeEditor" class="code-editor"></div>
+            </div>
+
+            <!-- Console Output -->
+            <div class="exercise-card console-card">
+                <div class="console-header">
+                    <h2 class="card-title">📟 Console</h2>
+                    <span class="console-status" id="consoleStatus">Ready</span>
+                </div>
+                <div class="console-output" id="consoleOutput">
+                    <div class="console-placeholder">Run tests or submit to see output here...</div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-bar">
+                <div class="hint-section">
+                    <button class="btn btn-hint" id="hintBtn" data-level="1">
+                        💡 Hint <span class="hint-counter" id="hintCounter">(0/3)</span>
+                    </button>
+                    <div class="hint-display" id="hintDisplay" style="display:none;"></div>
+                </div>
+                <div class="submit-section">
+                    <button class="btn btn-outline btn-run" id="runTestsBtn">
+                        ▶ Run Tests
+                    </button>
+                    <button class="btn btn-primary btn-lg btn-glow" id="submitBtn">
+                        Submit for Feedback
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Previous Attempts -->
+    {% if attempts %}
+    <div class="exercise-card">
+        <h2 class="card-title">📝 Previous Attempts</h2>
+        <div class="attempts-list">
+            {% for attempt in attempts %}
+            <div class="attempt-item {% if attempt.score >= 70 %}passed{% else %}failed{% endif %}">
+                <span class="attempt-score">{{ attempt.score }}%</span>
+                <span class="attempt-meta">{{ attempt.created_at }} · {{ attempt.time_spent_seconds // 60 }}m {{
+                    attempt.time_spent_seconds % 60 }}s · {{ attempt.hints_used }} hints</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        initExercise('{{ exercise.category }}');
+    });
+</script>
+{% endblock %}

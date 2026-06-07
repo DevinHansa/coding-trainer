@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Progress — SDE Prep{% endblock %}
+
+{% block content %}
+<div class="progress-page">
+    <h1 class="page-title">📈 Your Progress</h1>
+
+    <!-- Rank & Stats -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.total_attempts }}</div>
+            <div class="stat-label">Total Attempts</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.exercises_passed }}</div>
+            <div class="stat-label">Passed</div>
+        </div>
+        <div class="stat-card accent">
+            <div class="stat-value">{{ stats.avg_score }}%</div>
+            <div class="stat-label">Average</div>
+        </div>
+        <div class="stat-card streak">
+            <div class="stat-value">🔥 {{ stats.current_streak }}</div>
+            <div class="stat-label">Day Streak</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ rank_info.icon }} {{ rank_info.total_xp }}</div>
+            <div class="stat-label">{{ rank_info.label }}</div>
+        </div>
+    </div>
+
+    <!-- The Ladder -->
+    <section class="section">
+        <h2 class="section-title">🪜 The Ladder</h2>
+        <div class="ladder-card">
+            <div class="ladder-ranks-row">
+                {% for key, info in ladder_ranks.items() %}
+                <div class="ladder-rank-pip {% if key == rank_info.rank_key %}active{% endif %}
+                    {% if info.xp <= rank_info.total_xp %}achieved{% endif %}">
+                    <span>{{ info.icon }}</span>
+                    <small>{{ info.label }}</small>
+                    <small class="ladder-xp-label">{{ info.xp }} XP</small>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="progress-bar" style="margin-top: 1rem;">
+                <div class="progress-fill success" style="width: {{ rank_info.progress_pct }}%"></div>
+            </div>
+        </div>
+    </section>
+
+    {% for cat_name, cat_key, cat_progress in [('🗄️ SQL Concepts', 'sql', sql_progress), ('🐍 Python Concepts', 'python', python_progress), ('⚡ PySpark Concepts', 'pyspark', pyspark_progress)] %}
+    <section class="section">
+        <h2 class="section-title">{{ cat_name }}</h2>
+        {% if cat_progress %}
+        <div class="concept-grid">
+            {% for p in cat_progress %}
+            <div class="concept-card {% if p.avg_score >= 70 %}mastered{% elif p.avg_score >= 40 %}learning{% else %}weak{% endif %}">
+                <div class="concept-name">{{ p.concept_tag.split(':')[-1] | replace('_',' ') | title }}</div>
+                <div class="concept-stats">
+                    <span>{{ p.attempts_count }} attempts</span>
+                    <span>{{ p.success_count }}/{{ p.attempts_count }} passed</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill {% if p.avg_score >= 70 %}success{% elif p.avg_score >= 40 %}warning{% else %}danger{% endif %}"
+                        style="width: {{ p.avg_score }}%"></div>
+                </div>
+                <div class="concept-footer">
+                    <span class="concept-score">{{ p.avg_score | round(1) }}%</span>
+                    <span class="mastery-badge mastery-{{ p.mastery_level }}">{{ p.mastery_level }}</span>
+                </div>
+                {% if p.current_streak > 0 %}
+                <div class="concept-streak">🔥 {{ p.current_streak }} streak</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="empty-state">No {{ cat_key }} progress yet. <a href="/train/{{ cat_key }}">Start practicing!</a></p>
+        {% endif %}
+    </section>
+    {% endfor %}
+</div>
+{% endblock %}

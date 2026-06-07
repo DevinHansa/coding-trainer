@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SDE Prep{% endblock %}</title>
+    <meta name="description" content="Senior Data Engineer interview preparation platform — Python, SQL, PySpark">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span class="nav-logo">🎯</span>
+            <span class="nav-title">SDE Prep</span>
+        </div>
+        <div class="nav-links">
+            <a href="/" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                <span class="nav-icon">📊</span> Dashboard
+            </a>
+            <a href="/exercises" class="nav-link {% if request.endpoint == 'exercise_list' %}active{% endif %}">
+                <span class="nav-icon">📚</span> Exercises
+            </a>
+            <a href="/train/sql" class="nav-link {% if request.endpoint in ['train','exercise_view'] and request.view_args.get('category') == 'sql' %}active{% endif %}">
+                <span class="nav-icon">🗄️</span> SQL
+            </a>
+            <a href="/train/python" class="nav-link {% if request.endpoint in ['train','exercise_view'] and request.view_args.get('category') == 'python' %}active{% endif %}">
+                <span class="nav-icon">🐍</span> Python
+            </a>
+            <a href="/train/pyspark" class="nav-link {% if request.endpoint in ['train','exercise_view'] and request.view_args.get('category') == 'pyspark' %}active{% endif %}">
+                <span class="nav-icon">⚡</span> PySpark
+            </a>
+            <a href="/progress" class="nav-link {% if request.endpoint == 'progress_page' %}active{% endif %}">
+                <span class="nav-icon">📈</span> Progress
+            </a>
+        </div>
+        <div class="nav-right">
+            <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" data-tooltip="Toggle dark mode">
+                <span class="theme-icon" id="themeIcon">🌙</span>
+            </button>
+            <div class="nav-status" id="geminiStatus">
+                <span class="status-dot"></span>
+                <span class="status-text">Checking AI...</span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/sql/sql.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

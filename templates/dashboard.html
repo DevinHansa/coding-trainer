@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — SDE Prep{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title">
+                <span class="greeting" id="greeting">Good evening</span> 👋
+            </h1>
+            <p class="hero-subtitle">{{ plan.recommendation }}</p>
+            <div class="hero-actions">
+                <a href="/train/sql" class="btn btn-primary btn-glow">
+                    <span>🗄️</span> Train SQL
+                </a>
+                <a href="/train/python" class="btn btn-secondary btn-glow">
+                    <span>🐍</span> Train Python
+                </a>
+                <a href="/train/pyspark" class="btn btn-outline btn-glow" style="border-color: var(--pyspark-color); color: var(--pyspark-color);">
+                    <span>⚡</span> Train PySpark
+                </a>
+                <a href="/train" class="btn btn-outline">
+                    <span>🎯</span> Auto-Pick
+                </a>
+            </div>
+        </div>
+        <div class="hero-stats">
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.total_attempts }}</div>
+                <div class="stat-label">Total Attempts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.exercises_passed }}</div>
+                <div class="stat-label">Exercises Passed</div>
+            </div>
+            <div class="stat-card accent">
+                <div class="stat-value">{{ stats.avg_score }}%</div>
+                <div class="stat-label">Average Score</div>
+            </div>
+            <div class="stat-card streak">
+                <div class="stat-value">🔥 {{ stats.current_streak }}</div>
+                <div class="stat-label">Day Streak</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- The Ladder — Rank Progression -->
+    <section class="section">
+        <h2 class="section-title">🪜 The Ladder</h2>
+        <div class="ladder-card">
+            <div class="ladder-rank-current">
+                <span class="ladder-icon">{{ rank_info.icon }}</span>
+                <div>
+                    <div class="ladder-rank-label">{{ rank_info.label }}</div>
+                    <div class="ladder-xp">{{ rank_info.total_xp }} XP</div>
+                </div>
+            </div>
+            <div class="ladder-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill success" style="width: {{ rank_info.progress_pct }}%"></div>
+                </div>
+                <div class="ladder-next">
+                    {% if rank_info.xp_to_next > 0 %}
+                        {{ rank_info.xp_to_next }} XP to <strong>{{ rank_info.next_rank }}</strong>
+                    {% else %}
+                        <strong>MAX RANK ACHIEVED</strong> 👑
+                    {% endif %}
+                </div>
+            </div>
+            <div class="ladder-ranks-row">
+                {% for key, info in ladder_ranks.items() %}
+                <div class="ladder-rank-pip {% if key == rank_info.rank_key %}active{% endif %}">
+                    <span>{{ info.icon }}</span>
+                    <small>{{ info.label.split(' ')[0] }}</small>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Status Banner -->
+    {% if not gemini.connected %}
+    <div class="alert alert-warning">
+        <span class="alert-icon">⚠️</span>
+        <div>
+            <strong>Gemini AI not connected.</strong> Check your API key in <code>.env</code>.
+            You can still practice with seed exercises.
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Skill Overview -->
+    <section class="section">
+        <h2 class="section-title">Skill Overview</h2>
+        <div class="skill-grid three-col">
+            <div class="skill-card sql-card">
+                <div class="skill-header">
+                    <span class="skill-icon">🗄️</span>
+                    <h3>SQL</h3>
+                </div>
+                <div class="skill-stats">
+                    <div class="skill-stat">
+                        <span class="skill-stat-value">{{ stats.sql_attempts }}</span>
+                        <span class="skill-stat-label">Attempts</span>
+                    </div>
+                    <div class="skill-stat">
+                        <span class="skill-stat-value">{{ stats.sql_avg }}%</span>
+                        <span class="skill-stat-label">Avg Score</span>
+                    </div>
+                </div>
+                <div class="progress-bar"><div class="progress-fill sql" style="width: {{ stats.sql_avg }}%"></div></div>
+                <a href="/train/sql" class="btn btn-sm">Practice SQL →</a>
+            </div>
+            <div class="skill-card python-card">
+                <div class="skill-header">
+                    <span class="skill-icon">🐍</span>
+                    <h3>Python</h3>
+                </div>
+                <div class="skill-stats">
+                    <div class="skill-stat">
+                        <span class="skill-stat-value">{{ stats.python_attempts }}</span>
+                        <span class="skill-stat-label">Attempts</span>
+                    </div>
+                    <div class="skill-stat">
+                        <span class="skill-stat-value">{{ stats.python_avg }}%</span>
+                        <span class="skill-stat-label">Avg Score</span>
+                    </div>
+                </div>
+                <div class="progress-bar"><div class="progress-fill python" style="width: {{ stats.python_avg }}%"></div></div>
+                <a href="/train/python" class="btn btn-sm">Practice Python →</a>
+            </div>
+            <div class="skill-card pyspark-card">
+                <div class="skill-header">
+                    <span class="skill-icon">⚡</span>
+                    <h3>PySpark</h3>
+                </div>
+                <div class="skill-stats">
+                    <div class="skill-stat">
+                        <span class="skill-stat-value">{{ stats.pyspark_attempts }}</span>
+                        <span class="skill-stat-label">Attempts</span>
+                    </div>
+                    <div class="skill-stat">
+                        <span class="skill-stat-value">{{ stats.pyspark_avg }}%</span>
+                        <span class="skill-stat-label">Avg Score</span>
+                    </div>
+                </div>
+                <div class="progress-bar"><div class="progress-fill pyspark" style="width: {{ stats.pyspark_avg }}%"></div></div>
+                <a href="/train/pyspark" class="btn btn-sm">Practice PySpark →</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Weak Areas -->
+    {% if stats.weak_areas %}
+    <section class="section">
+        <h2 class="section-title">🎯 Focus Areas</h2>
+        <div class="weak-areas-grid">
+            {% for area in stats.weak_areas %}
+            <div class="weak-card">
+                <div class="weak-tag">{{ area.tag }}</div>
+                <div class="weak-score">{{ area.score }}%</div>
+                <span class="mastery-badge mastery-{{ area.mastery }}">{{ area.mastery }}</span>
+                <div class="progress-bar small">
+                    <div class="progress-fill {% if area.score < 50 %}danger{% elif area.score < 70 %}warning{% else %}ok{% endif %}"
+                        style="width: {{ area.score }}%"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Recent Activity -->
+    {% if stats.recent_activity %}
+    <section class="section">
+        <h2 class="section-title">Recent Activity</h2>
+        <div class="activity-list">
+            {% for activity in stats.recent_activity %}
+            <a href="/exercise/{{ activity.exercise_id }}" class="activity-item">
+                <div class="activity-icon {% if activity.score >= 70 %}success{% else %}fail{% endif %}">
+                    {% if activity.score >= 70 %}✓{% else %}✗{% endif %}
+                </div>
+                <div class="activity-details">
+                    <span class="activity-title">{{ activity.title }}</span>
+                    <span class="activity-meta">
+                        {{ activity.category | upper }} · Level {{ activity.difficulty }}
+                    </span>
+                </div>
+                <div class="activity-score {% if activity.score >= 70 %}success{% elif activity.score >= 40 %}partial{% else %}fail{% endif %}">
+                    {{ activity.score }}%
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</div>
+
+<script>
+    const hour = new Date().getHours();
+    const el = document.getElementById('greeting');
+    if (hour < 12) el.textContent = 'Good morning';
+    else if (hour < 17) el.textContent = 'Good afternoon';
+    else el.textContent = 'Good evening';
+</script>
+{% endblock %}

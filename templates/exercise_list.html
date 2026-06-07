@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Exercises — SDE Prep{% endblock %}
+
+{% block content %}
+<div class="exercises-page">
+    <h1 class="page-title">📚 Exercise Library</h1>
+
+    <div class="filter-bar">
+        <a href="/exercises" class="btn btn-sm {% if not category %}active{% endif %}">All</a>
+        <a href="/exercises?category=sql" class="btn btn-sm {% if category == 'sql' %}active{% endif %}">🗄️ SQL</a>
+        <a href="/exercises?category=python" class="btn btn-sm {% if category == 'python' %}active{% endif %}">🐍 Python</a>
+        <a href="/exercises?category=pyspark" class="btn btn-sm {% if category == 'pyspark' %}active{% endif %}">⚡ PySpark</a>
+        <span class="filter-divider">|</span>
+        {% for d in range(1, 6) %}
+        <a href="/exercises?{% if category %}category={{ category }}&{% endif %}difficulty={{ d }}"
+            class="btn btn-sm {% if difficulty == d %}active{% endif %}">Level {{ d }}</a>
+        {% endfor %}
+    </div>
+
+    <!-- Generate New Exercise -->
+    <div class="generate-section">
+        <button class="btn btn-outline" id="generateSqlBtn" onclick="generateExercise('sql')">
+            ✨ Generate SQL
+        </button>
+        <button class="btn btn-outline" id="generatePythonBtn" onclick="generateExercise('python')">
+            ✨ Generate Python
+        </button>
+        <button class="btn btn-outline" id="generatePysparkBtn" onclick="generateExercise('pyspark')">
+            ✨ Generate PySpark
+        </button>
+        <div id="generateStatus" class="generate-status" style="display:none;"></div>
+    </div>
+
+    <div class="exercise-grid">
+        {% for ex in exercises %}
+        <a href="/exercise/{{ ex.id }}" class="exercise-card-link">
+            <div class="exercise-list-card">
+                <div class="exercise-list-header">
+                    <span class="badge badge-{{ ex.category }}">{{ ex.category | upper }}</span>
+                    <span class="badge badge-difficulty-{{ ex.difficulty }}" data-tooltip="Difficulty {{ ex.difficulty }} of 5">Level {{ ex.difficulty }}</span>
+                    {% if ex.topic %}
+                    <span class="badge badge-topic" data-tooltip="{{ ex.topic | replace('_', ' ') | title }}">{{ ex.topic | replace('_', ' ') }}</span>
+                    {% endif %}
+                </div>
+                <h3 class="exercise-list-title">{{ ex.title }}</h3>
+                <div class="tag-list">
+                    {% for tag in ex.tags %}
+                    <span class="tag">{{ tag }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+    {% if not exercises %}
+    <div class="empty-state-large">
+        <span class="empty-icon">📭</span>
+        <h3>No exercises found</h3>
+        <p>Try changing your filters or generate new exercises with AI.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
