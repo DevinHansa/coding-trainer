@@ -260,7 +260,6 @@ export default function ExercisePage() {
     );
   }
 
-  const scoreColor = '';  // Score is now purely test-based (100 or 0), kept for type safety
 
   return (
     <div className="space-y-4 fade-in">
