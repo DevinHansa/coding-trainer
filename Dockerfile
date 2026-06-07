@@ -12,5 +12,5 @@ COPY . .
 # Expose port
 EXPOSE 5000
 
-# Start server using the port assigned by Railway
-CMD ["sh", "-c", "gunicorn app:app --bind 0.0.0.0:$PORT"]
+# Start server using the Python startup script
+CMD ["python", "start.py"]
