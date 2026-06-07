@@ -6,12 +6,15 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 
+import { useAuth } from '@/AuthContext';
+
 export default function ExercisesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryFilter = searchParams.get('category') || '';
   const [exercises, setExercises] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const { token } = useAuth();
 
   useEffect(() => {
     let url = '/api/exercises';
@@ -20,14 +23,18 @@ export default function ExercisesPage() {
     }
     
     setLoading(true);
-    fetch(url)
+    fetch(url, {
+      headers: {
+        'x-auth-token': token || '',
+      },
+    })
       .then(res => res.json())
       .then(data => {
         setExercises(data);
         setLoading(false);
       })
       .catch(console.error);
-  }, [categoryFilter]);
+  }, [categoryFilter, token]);
 
   const filteredExercises = exercises.filter(ex => 
     ex.title.toLowerCase().includes(searchQuery.toLowerCase()) || 

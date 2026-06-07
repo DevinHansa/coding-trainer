@@ -1,4 +1,4 @@
-"""Exercise engine — adaptive practice flow with flow-state integration."""
+"""Exercise engine — adaptive practice flow with user-specific flow-state integration."""
 import json
 import random
 from database import (
@@ -10,10 +10,10 @@ from coach import generate_exercise, generate_mcq_drill, detect_weakness
 from flow_engine import get_adaptive_difficulty, should_trigger_mcq_drill
 
 
-def pick_next_exercise(category=None, session_focus=None):
+def pick_next_exercise(user_id, category=None, session_focus=None):
     """Pick the best next exercise — never repeats a passed exercise unless all are passed."""
-    weak = get_weak_concepts(category=category, limit=5)
-    target_difficulty = get_adaptive_difficulty(category)
+    weak = get_weak_concepts(user_id, category=category, limit=5)
+    target_difficulty = get_adaptive_difficulty(user_id, category)
 
     # Gather ALL exercises for this category
     all_exercises = get_exercises(category=category, limit=100)
@@ -21,7 +21,7 @@ def pick_next_exercise(category=None, session_focus=None):
         return None
 
     # Split into passed vs not-passed
-    passed_ids = {ex['id'] for ex in all_exercises if _has_passed(ex['id'])}
+    passed_ids = {ex['id'] for ex in all_exercises if _has_passed(user_id, ex['id'])}
     unpassed = [ex for ex in all_exercises if ex['id'] not in passed_ids]
 
     # 1. Try weak-concept exercises that haven't been passed
@@ -32,12 +32,12 @@ def pick_next_exercise(category=None, session_focus=None):
             if any(tag in (ex.get('tags') or '') for tag in weak_tags)
         ]
         if weak_candidates:
-            return _pick_least_recent(weak_candidates)
+            return _pick_least_recent(user_id, weak_candidates)
 
     # 2. Try unpassed at target difficulty
     at_target = [ex for ex in unpassed if ex['difficulty'] == target_difficulty]
     if at_target:
-        return _pick_least_recent(at_target)
+        return _pick_least_recent(user_id, at_target)
 
     # 3. Try unpassed at ANY difficulty (prefer closest to target)
     if unpassed:
@@ -48,28 +48,28 @@ def pick_next_exercise(category=None, session_focus=None):
     return None
 
 
-def _has_passed(exercise_id):
-    attempts = get_attempts_for_exercise(exercise_id, limit=5)
+def _has_passed(user_id, exercise_id):
+    attempts = get_attempts_for_exercise(exercise_id, user_id, limit=5)
     return any(a['score'] >= 70 for a in attempts)
 
 
-def _pick_least_recent(candidates):
+def _pick_least_recent(user_id, candidates):
     for c in candidates:
-        attempts = get_attempts_for_exercise(c['id'], limit=1)
+        attempts = get_attempts_for_exercise(c['id'], user_id, limit=1)
         c['_last_attempted'] = attempts[0]['created_at'] if attempts else '2000-01-01'
     candidates.sort(key=lambda c: c.get('_last_attempted', '2000-01-01'))
     return candidates[0]
 
 
-def handle_failure(exercise_id, issues, user_code="", score=0):
+def handle_failure(user_id, exercise_id, issues, user_code="", score=0):
     """Handle a failed submission — check if MCQ drill should trigger."""
     exercise = get_exercise(exercise_id)
     if not exercise:
         return None
 
     # Check if MCQ drill should be triggered
-    if should_trigger_mcq_drill(exercise.get('category')):
-        active_weaknesses = get_active_weaknesses(limit=1)
+    if should_trigger_mcq_drill(user_id, exercise.get('category')):
+        active_weaknesses = get_active_weaknesses(user_id, limit=1)
         if active_weaknesses:
             tag = active_weaknesses[0]['concept_tag']
             mcq = generate_mcq_drill(tag, exercise['category'])
@@ -79,15 +79,15 @@ def handle_failure(exercise_id, issues, user_code="", score=0):
     return {"type": "retry", "suggestion": "Try the next exercise — build momentum."}
 
 
-def generate_new_exercise(category, difficulty=None, weak_tags=None):
+def generate_new_exercise(user_id, category, difficulty=None, weak_tags=None):
     """Generate a new AI exercise and save it."""
     if difficulty is None:
-        difficulty = get_adaptive_difficulty(category)
+        difficulty = get_adaptive_difficulty(user_id, category)
     if weak_tags is None:
-        weak = get_weak_concepts(category=category, limit=3)
+        weak = get_weak_concepts(user_id, category=category, limit=3)
         weak_tags = [w['concept_tag'] for w in weak]
 
-    profile = get_user_profile(category)
+    profile = get_user_profile(user_id, category)
     result = generate_exercise(category, difficulty, weak_tags, user_profile=profile)
 
     if result.get("error"):
@@ -112,12 +112,12 @@ def generate_new_exercise(category, difficulty=None, weak_tags=None):
     return result
 
 
-def get_training_plan(category=None):
+def get_training_plan(user_id, category=None):
     """Generate a training plan based on progress."""
-    weak = get_weak_concepts(category=category, limit=5)
-    progress = get_all_progress()
+    weak = get_weak_concepts(user_id, category=category, limit=5)
+    progress = get_all_progress(user_id)
     total = count_exercises()
-    difficulty = get_adaptive_difficulty(category)
+    difficulty = get_adaptive_difficulty(user_id, category)
 
     plan = {
         "focus_areas": [],

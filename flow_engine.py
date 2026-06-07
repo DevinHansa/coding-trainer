@@ -1,13 +1,13 @@
-"""Flow state engine — adaptive difficulty, XP, and gamification."""
+"""Flow state engine — adaptive difficulty, XP, and gamification with user-specific context."""
 from config import (
     FLOW_FAST_SOLVE_RATIO, FLOW_FAIL_THRESHOLD, FLOW_STREAK_BONUS, LADDER_RANKS
 )
 from database import get_flow_state
 
 
-def get_adaptive_difficulty(category=None):
-    """Determine the next difficulty level based on flow state."""
-    flow = get_flow_state()
+def get_adaptive_difficulty(user_id, category=None):
+    """Determine the next difficulty level based on flow state for a user."""
+    flow = get_flow_state(user_id)
     current = flow.get("current_difficulty", 1)
     passes = flow.get("consecutive_passes", 0)
     fails = flow.get("consecutive_fails", 0)
@@ -23,9 +23,9 @@ def get_adaptive_difficulty(category=None):
     return current
 
 
-def should_trigger_mcq_drill(category=None):
-    """Check if we should interrupt with an MCQ drill."""
-    flow = get_flow_state()
+def should_trigger_mcq_drill(user_id, category=None):
+    """Check if we should interrupt with an MCQ drill for a user."""
+    flow = get_flow_state(user_id)
     return flow.get("consecutive_fails", 0) >= FLOW_FAIL_THRESHOLD
 
 

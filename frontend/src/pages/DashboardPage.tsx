@@ -6,19 +6,26 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 
+import { useAuth } from '@/AuthContext';
+
 export default function DashboardPage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const { token } = useAuth();
 
   useEffect(() => {
-    fetch('/api/dashboard')
+    fetch('/api/dashboard', {
+      headers: {
+        'x-auth-token': token || '',
+      },
+    })
       .then(res => res.json())
       .then(data => {
         setData(data);
         setLoading(false);
       })
       .catch(console.error);
-  }, []);
+  }, [token]);
 
   if (loading) {
     return (

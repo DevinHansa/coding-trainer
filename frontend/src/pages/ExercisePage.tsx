@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
+import { useAuth } from '@/AuthContext';
 
 /* ─── Types ─────────────────────────────────────────────────── */
 interface Exercise {
@@ -77,6 +78,7 @@ interface NextExercise {
 export default function ExercisePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { token } = useAuth();
 
   const [exercise, setExercise] = useState<Exercise | null>(null);
   const [attempts, setAttempts] = useState<any[]>([]);
@@ -101,7 +103,11 @@ export default function ExercisePage() {
   useEffect(() => {
     if (!id) return;
     setLoading(true);
-    fetch(`/api/exercises/${id}`)
+    fetch(`/api/exercises/${id}`, {
+      headers: {
+        'x-auth-token': token || '',
+      },
+    })
       .then(r => r.json())
       .then(data => {
         setExercise(data.exercise);
@@ -111,7 +117,7 @@ export default function ExercisePage() {
         setLoading(false);
       })
       .catch(console.error);
-  }, [id]);
+  }, [id, token]);
 
   /* ── Timer ── */
   useEffect(() => {
@@ -156,7 +162,10 @@ export default function ExercisePage() {
     try {
       const res = await fetch('/run-tests', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-auth-token': token || '',
+        },
         body: JSON.stringify({ exercise_id: exercise.id, code }),
       });
       const data: TestResult = await res.json();
@@ -180,7 +189,10 @@ export default function ExercisePage() {
     try {
       const res = await fetch('/submit', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-auth-token': token || '',
+        },
         body: JSON.stringify({
           exercise_id: exercise.id,
           code,
@@ -208,7 +220,11 @@ export default function ExercisePage() {
   /* ── Fetch next exercise ── */
   async function fetchNextExercise(currentId: number, category: string) {
     try {
-      const res = await fetch(`/api/next-exercise?current_id=${currentId}&category=${category}`);
+      const res = await fetch(`/api/next-exercise?current_id=${currentId}&category=${category}`, {
+        headers: {
+          'x-auth-token': token || '',
+        },
+      });
       const data: NextExercise = await res.json();
       setNextExercise(data);
     } catch {
@@ -224,7 +240,10 @@ export default function ExercisePage() {
     try {
       const res = await fetch('/hint', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-auth-token': token || '',
+        },
         body: JSON.stringify({ exercise_id: exercise.id, code, hint_level: nextLevel }),
       });
       const data = await res.json();

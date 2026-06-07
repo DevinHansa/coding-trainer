@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useAuth } from '@/AuthContext';
 
 interface AppShellProps {
   children: ReactNode;
@@ -16,6 +17,7 @@ const NAV_LINKS = [
 
 export function AppShell({ children }: AppShellProps) {
   const location = useLocation();
+  const { user, logout } = useAuth();
 
   const toggleTheme = () => {
     const isDark = document.documentElement.classList.toggle('dark');
@@ -56,6 +58,18 @@ export function AppShell({ children }: AppShellProps) {
               <span className="inline dark:hidden">🌙</span>
             </Button>
 
+            {/* Desktop user display and logout */}
+            {user && (
+              <div className="hidden sm:flex items-center gap-3 border-l pl-3">
+                <span className="text-xs font-semibold bg-muted text-muted-foreground px-2.5 py-1.5 rounded-md max-w-[120px] truncate" title={user.username}>
+                  👤 {user.username}
+                </span>
+                <Button variant="ghost" size="sm" onClick={logout} className="text-xs text-red-500 hover:text-red-600 hover:bg-red-50/50 dark:hover:bg-red-950/10">
+                  Sign Out
+                </Button>
+              </div>
+            )}
+
             {/* Mobile Nav */}
             <div className="md:hidden">
               <Sheet>
@@ -64,22 +78,35 @@ export function AppShell({ children }: AppShellProps) {
                     <Menu className="h-5 w-5" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-[240px] sm:w-[300px]">
-                  <nav className="flex flex-col gap-2 mt-8">
-                    {NAV_LINKS.map((link) => (
-                      <Link
-                        key={link.path}
-                        to={link.path}
-                        className={`px-4 py-3 rounded-md text-base font-medium transition-colors ${
-                          location.pathname === link.path
-                            ? 'bg-primary text-primary-foreground'
-                            : 'hover:bg-muted'
-                        }`}
-                      >
-                        {link.icon} {link.label}
-                      </Link>
-                    ))}
-                  </nav>
+                <SheetContent side="left" className="w-[240px] sm:w-[300px] flex flex-col justify-between">
+                  <div>
+                    <nav className="flex flex-col gap-2 mt-8">
+                      {NAV_LINKS.map((link) => (
+                        <Link
+                          key={link.path}
+                          to={link.path}
+                          className={`px-4 py-3 rounded-md text-base font-medium transition-colors ${
+                            location.pathname === link.path
+                              ? 'bg-primary text-primary-foreground'
+                              : 'hover:bg-muted'
+                          }`}
+                        >
+                          {link.icon} {link.label}
+                        </Link>
+                      ))}
+                    </nav>
+                  </div>
+                  
+                  {user && (
+                    <div className="border-t pt-4 flex flex-col gap-3">
+                      <div className="px-2 text-xs font-medium text-muted-foreground truncate">
+                        Logged in as: <span className="text-foreground font-semibold">{user.username}</span>
+                      </div>
+                      <Button variant="destructive" size="sm" onClick={logout} className="w-full text-xs">
+                        Sign Out
+                      </Button>
+                    </div>
+                  )}
                 </SheetContent>
               </Sheet>
             </div>
