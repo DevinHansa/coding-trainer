@@ -1,11 +1,11 @@
 {
   "rewrites": [
-    { "source": "/api/:path*",       "destination": "https://coding-trainer-production.up.railway.app/api/:path*" },
-    { "source": "/submit",           "destination": "https://coding-trainer-production.up.railway.app/submit" },
-    { "source": "/run-tests",        "destination": "https://coding-trainer-production.up.railway.app/run-tests" },
-    { "source": "/hint",             "destination": "https://coding-trainer-production.up.railway.app/hint" },
-    { "source": "/mcq/:path*",       "destination": "https://coding-trainer-production.up.railway.app/mcq/:path*" },
-    { "source": "/generate",         "destination": "https://coding-trainer-production.up.railway.app/generate" },
+    { "source": "/api/:path*",       "destination": "https://web-production-326a9.up.railway.app/api/:path*" },
+    { "source": "/submit",           "destination": "https://web-production-326a9.up.railway.app/submit" },
+    { "source": "/run-tests",        "destination": "https://web-production-326a9.up.railway.app/run-tests" },
+    { "source": "/hint",             "destination": "https://web-production-326a9.up.railway.app/hint" },
+    { "source": "/mcq/:path*",       "destination": "https://web-production-326a9.up.railway.app/mcq/:path*" },
+    { "source": "/generate",         "destination": "https://web-production-326a9.up.railway.app/generate" },
     { "source": "/(.*)",             "destination": "/index.html" }
   ]
 }
