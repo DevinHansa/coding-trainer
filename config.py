@@ -24,7 +24,7 @@ DEBUG = os.environ.get("FLASK_DEBUG", "1") == "1"
 PORT = int(os.environ.get("PORT", "5000"))
 
 # ── Database ───────────────────────────────────────────────
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "coding_trainer.db")
+DB_PATH = os.environ.get("DATABASE_PATH", os.path.join(os.path.dirname(os.path.abspath(__file__)), "coding_trainer.db"))
 
 # ── Categories ─────────────────────────────────────────────
 VALID_CATEGORIES = ("python", "sql", "pyspark")
